@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"os"
 	"store/controllers"
 	"store/models"
 	"store/repositories"
@@ -20,8 +19,7 @@ func main() {
 	http.Handle("/api/categories/", categoryRouter.Setup())
 	http.Handle("/api/categories", categoryRouter.Setup())
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080" // fallback local
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		panic(err)
 	}
 }
