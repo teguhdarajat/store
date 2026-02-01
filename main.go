@@ -1,25 +1,33 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"net/http"
-	"store/controllers"
-	"store/models"
+	"store/config"
+	"store/database"
+	"store/handlers"
 	"store/repositories"
 	"store/routers"
 	"store/services"
 )
 
 func main() {
-	categories := []models.Category{}
+	config := config.LoadConfig()
+	db, err := database.InitDB(config.Database)
+	if err != nil {
+		log.Fatal("Failed to initialize database:", err)
+	}
+	defer db.Close()
 
-	categoryRepository := repositories.NewCategoryRepository(categories)
+	categoryRepository := repositories.NewCategoryRepository(db)
 	categoryService := services.NewCategoryService(categoryRepository)
-	categorieController := controllers.NewCategoryController(categoryService)
-	categoryRouter := routers.NewCategoryRouter(categorieController)
-	http.Handle("/api/categories/", categoryRouter.Setup())
-	http.Handle("/api/categories", categoryRouter.Setup())
+	categoryHandler := handlers.NewCategoryHandler(categoryService)
+	routers.RegisterCategoryRoutes(categoryHandler)
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	fmt.Println(config.Database)
+
+	if err := http.ListenAndServe("8085", nil); err != nil {
 		panic(err)
 	}
 }

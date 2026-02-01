@@ -7,11 +7,11 @@ import (
 )
 
 type CategoryService interface {
-	GetCategories() params.Categories
-	GetCategoryByID(uint) (*params.Category, error)
-	InsertCategory(params.Category) params.Category
-	UpdateCategory(uint, params.Category) (*params.Category, error)
-	DeleteCategory(uint) error
+	GetAll() (*params.Categories, error)
+	GetByID(uint) (*params.Category, error)
+	Insert(params.Category) (*params.Category, error)
+	Update(params.Category) (*params.Category, error)
+	Delete(uint) error
 }
 
 type categoryService struct {
@@ -50,13 +50,17 @@ func toCategoryModel(category params.Category) models.Category {
 	}
 }
 
-func (cs *categoryService) GetCategories() params.Categories {
-	res := cs.categoryRepository.GetCategories()
-	return toCategoryParams(res)
+func (cs *categoryService) GetAll() (*params.Categories, error) {
+	res, err := cs.categoryRepository.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	category := toCategoryParams(res)
+	return &category, nil
 }
 
-func (cs *categoryService) GetCategoryByID(id uint) (*params.Category, error) {
-	res, err := cs.categoryRepository.GetCategoryByID(id)
+func (cs *categoryService) GetByID(id uint) (*params.Category, error) {
+	res, err := cs.categoryRepository.GetByID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -65,26 +69,30 @@ func (cs *categoryService) GetCategoryByID(id uint) (*params.Category, error) {
 	return &category, err
 }
 
-func (cs *categoryService) InsertCategory(category params.Category) params.Category {
+func (cs *categoryService) Insert(category params.Category) (*params.Category, error) {
 	categoryModel := toCategoryModel(category)
-	res := cs.categoryRepository.InsertCategory(categoryModel)
-	return toCategoryParam(res)
-}
-
-func (cs *categoryService) UpdateCategory(id uint, updateCategory params.Category) (*params.Category, error) {
-	categoryModel := toCategoryModel(updateCategory)
-
-	res, err := cs.categoryRepository.UpdateCategory(id, categoryModel)
+	res, err := cs.categoryRepository.Insert(&categoryModel)
 	if err != nil {
 		return nil, err
 	}
 
-	category := toCategoryParam(*res)
+	category = toCategoryParam(*res)
 	return &category, err
 }
 
-func (cs *categoryService) DeleteCategory(id uint) error {
-	err := cs.categoryRepository.DeleteCategory(id)
+func (cs *categoryService) Update(update params.Category) (*params.Category, error) {
+	categoryModel := toCategoryModel(update)
+
+	err := cs.categoryRepository.Update(categoryModel)
+	if err != nil {
+		return nil, err
+	}
+
+	return &update, err
+}
+
+func (cs *categoryService) Delete(id uint) error {
+	err := cs.categoryRepository.Delete(id)
 	if err != nil {
 		return err
 	}
